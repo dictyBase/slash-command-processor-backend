@@ -34,39 +34,52 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
+          fetch-depth: 0
           repository: ${{ github.event.inputs.repository-owner }}/${{ github.event.inputs.repository-name }}
       - name: download and setup path for github actions binary
         run: |
           mkdir -p github-actions/bin
-          curl -L -o github-actions/bin/actions https://github.com/dictybase-docker/github-actions/releases/download/v0.4.1/action_0.4.1_Linux_x86_64
+          curl -L -o github-actions/bin/actions https://github.com/dictybase-docker/github-actions/releases/download/v0.5.1/action_0.5.1_Linux_x86_64
           chmod +x github-actions/bin/actions
           echo "::add-path::$GITHUB_WORKSPACE/github-actions/bin"
       - name: parse deploy command and set vars
         id: vars
         run: actions --log-level debug pcd -f ${GITHUB_EVENT_PATH}
-      - name: image build and push
-        if: ${{ success() }}
-        uses: docker/build-push-action@v1
+      - name: set up docker buildx
+        uses: docker/setup-buildx-action@v1
+      - name: cache docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+      - name: login to dockerhub
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASSWORD  }}
-          repository: dictybase/${{ github.event.inputs.repository-name }}
-          add_git_labels: true
-          tag_with_sha: true
-          tag_with_ref: true
-          tags: ${{ steps.vars.outputs.image_tag }}
-          dockerfile: build/package/Dockerfile
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: docker build and push
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          file: build/package/Dockerfile
+          tags: dictybase/${{ github.event.inputs.repository-name }}:${{ steps.vars.outputs.image_tag }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
       - name: prepare for deploy
         if: ${{ success() }}
         id: prepare_deploy
-        uses: dictybase-docker/prepare-deploy@v1
+        uses: dictybase-docker/prepare-deploy@v2
         with:
+          owner: ${{ github.event.inputs.repository-owner }}
+          repo: ${{ github.event.inputs.repository-name }}
           cluster-name: ${{ github.event.inputs.cluster }}
           cluster-zone: "us-central1-a"
           namespace: dictybase
           chart-name: ${{ github.event.inputs.repository-name }}
           chart-path: deployments/charts/${{ github.event.inputs.repository-name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
           image-tag: ${{ steps.vars.outputs.image_tag }}
           ref: ${{ steps.vars.outputs.ref }}
           artifact: ${{ github.event.inputs.repository-name }}
@@ -84,7 +97,7 @@ jobs:
       - name: download and setup path for github action binary
         run: |
           mkdir -p github-actions/bin
-          curl -L -o github-actions/bin/actions https://github.com/dictybase-docker/github-actions/releases/download/v0.4.1/action_0.4.1_Linux_x86_64
+          curl -L -o github-actions/bin/actions https://github.com/dictybase-docker/github-actions/releases/download/v0.5.1/action_0.5.1_Linux_x86_64
           chmod +x github-actions/bin/actions
           echo "::add-path::$GITHUB_WORKSPACE/github-actions/bin"
       - name: extract information from deployment payload
@@ -92,7 +105,7 @@ jobs:
         run: actions --log-level debug sdp -f deployment.json
       - name: set in_progress deployment status
         if: ${{ success() }}
-        run: actions --log-level debug -t ${{ secrets.GITHUB_TOKEN }} --owner ${{ github.event.inputs.repository-owner }} -r ${{ github.event.inputs.repository-name }} ds --state in_progress  --deployment_id ${{ steps.deploy_info.outputs.id }} --url ${{ steps.deploy_info.outputs.url }}
+        run: actions --log-level debug -t ${{ secrets.REPO_ACCESS_TOKEN }} --owner ${{ github.event.inputs.repository-owner }} -r ${{ github.event.inputs.repository-name }} ds --state in_progress  --deployment_id ${{ steps.deploy_info.outputs.id }} --url ${{ steps.deploy_info.outputs.url }}
       - name: setup google cloud sdk
         uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
@@ -104,6 +117,8 @@ jobs:
         uses: azure/setup-helm@v1
         with:
           version: "v2.16.9"
+      - name: add dictybase helm repo
+        run: helm init --client-only && helm repo add dictybase https://dictybase-docker.github.io/kubernetes-charts
       - name: get gcloud credentials for k8s cluster
         run: gcloud container clusters get-credentials --project ${{ secrets.PROJECT_ID }} --zone ${{ steps.deploy_info.outputs.zone }} ${{ steps.deploy_info.outputs.cluster }}
       - name: deploy chart
@@ -111,10 +126,10 @@ jobs:
         run: actions --log-level debug dc --name ${{ steps.deploy_info.outputs.chart }} --namespace ${{ steps.deploy_info.outputs.namespace }} --image-tag ${{ steps.deploy_info.outputs.image_tag }} --path ${{ steps.deploy_info.outputs.path }}
       - name: set successful deploy status
         if: ${{ success() }}
-        run: actions --log-level debug -t ${{ secrets.GITHUB_TOKEN }} --owner ${{ github.event.inputs.repository-owner }} -r ${{ github.event.inputs.repository-name }} ds --state success  --deployment_id ${{ steps.deploy_info.outputs.id }} --url ${{ steps.deploy_info.outputs.url }}
+        run: actions --log-level debug -t ${{ secrets.REPO_ACCESS_TOKEN }} --owner ${{ github.event.inputs.repository-owner }} -r ${{ github.event.inputs.repository-name }} ds --state success  --deployment_id ${{ steps.deploy_info.outputs.id }} --url ${{ steps.deploy_info.outputs.url }}
       - name: set unsuccessful deploy status
         if: ${{ failure() }}
-        run: actions --log-level debug -t ${{ secrets.GITHUB_TOKEN }} --owner ${{ github.event.inputs.repository-owner }} -r ${{ github.event.inputs.repository-name }} ds --state error  --deployment_id ${{ steps.deploy_info.outputs.id }} --url ${{ steps.deploy_info.outputs.url }}
+        run: actions --log-level debug -t ${{ secrets.REPO_ACCESS_TOKEN }} --owner ${{ github.event.inputs.repository-owner }} -r ${{ github.event.inputs.repository-name }} ds --state error  --deployment_id ${{ steps.deploy_info.outputs.id }} --url ${{ steps.deploy_info.outputs.url }}
   add-reaction:
     runs-on: ubuntu-latest
     needs: deploy
