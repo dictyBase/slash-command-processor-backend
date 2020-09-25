@@ -17,6 +17,9 @@ on:
       comment-id:
         description: "ID of comment with deploy command"
         required: true
+      chart-name:
+        description: "Name of Helm chart"
+        required: true
       cluster:
         description: "The cluster to deploy to"
         required: true
@@ -78,7 +81,7 @@ jobs:
           cluster-zone: "us-central1-a"
           namespace: dictybase
           chart-name: ${{ github.event.inputs.repository-name }}
-          chart-path: dictybase/${{ github.event.inputs.repository-name }}
+          chart-path: dictybase/${{ github.event.inputs.chart-name }}
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           image-tag: ${{ steps.vars.outputs.image_tag }}
           ref: ${{ steps.vars.outputs.ref }}
