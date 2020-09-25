@@ -80,7 +80,7 @@ jobs:
           cluster-name: ${{ github.event.inputs.cluster }}
           cluster-zone: "us-central1-a"
           namespace: dictybase
-          chart-name: ${{ github.event.inputs.repository-name }}
+          chart-name: ${{ github.event.inputs.chart-name }}
           chart-path: dictybase/${{ github.event.inputs.chart-name }}
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           image-tag: ${{ steps.vars.outputs.image_tag }}
