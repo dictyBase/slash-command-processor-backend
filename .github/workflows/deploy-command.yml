@@ -34,11 +34,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Prepare for deployment
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          repository: ${{ github.event.inputs.repository-owner }}/${{ github.event.inputs.repository-name }}
       - name: download and setup path for github actions binary
         run: |
           mkdir -p github-actions/bin
@@ -48,13 +43,19 @@ jobs:
       - name: parse deploy command and set vars
         id: vars
         run: actions --log-level debug pcd -f ${GITHUB_EVENT_PATH}
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          repository: ${{ github.event.inputs.repository-owner }}/${{ github.event.inputs.repository-name }}
+          ref: ${{ steps.vars.outputs.ref }}
       - name: set up docker buildx
         uses: docker/setup-buildx-action@v1
       - name: cache docker layers
         uses: actions/cache@v2
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          key: ${{ runner.os }}-buildx-${{ steps.vars.outputs.ref }}
           restore-keys: |
             ${{ runner.os }}-buildx-
       - name: login to dockerhub
