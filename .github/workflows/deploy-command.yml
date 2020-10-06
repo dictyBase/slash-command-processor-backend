@@ -66,6 +66,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
+          context: .
           file: build/package/Dockerfile
           tags: dictybase/${{ github.event.inputs.repository-name }}:${{ steps.vars.outputs.image_tag }}
           cache-from: type=local,src=/tmp/.buildx-cache
