@@ -37,7 +37,7 @@ jobs:
       - name: download and setup path for github actions binary
         run: |
           mkdir -p github-actions/bin
-          curl -L -o github-actions/bin/actions https://github.com/dictybase-docker/github-actions/releases/download/v0.5.1/action_0.5.1_Linux_x86_64
+          curl -L -o github-actions/bin/actions https://github.com/dictybase-docker/github-actions/releases/download/v2.1.4/action_2.1.4_Linux_x86_64
           chmod +x github-actions/bin/actions
           echo "::add-path::$GITHUB_WORKSPACE/github-actions/bin"
       - name: parse deploy command and set vars
