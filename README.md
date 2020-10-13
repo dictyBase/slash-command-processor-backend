@@ -19,7 +19,7 @@ Deploys application to a specified cluster.
 
 **Posting a comment inside a pull request:**   
 `/deploy cluster=siddkube`  
-`/deploy cluster=siddkube commit=xyz`
+`/deploy cluster=siddkube commit=xyz`   
 `/deploy cluster=siddkube chart-name=baaz`  
 
 _If no commit is given in a PR comment, the head commit is used._
