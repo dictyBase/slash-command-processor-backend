@@ -31,7 +31,7 @@ on:
         required: false
 jobs:
   prepare-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     name: Prepare for deployment
     steps:
       - name: download and setup path for github actions binary
@@ -39,7 +39,7 @@ jobs:
           mkdir -p github-actions/bin
           curl -L -o github-actions/bin/actions https://github.com/dictybase-docker/github-actions/releases/download/v2.1.4/action_2.1.4_Linux_x86_64
           chmod +x github-actions/bin/actions
-          echo "::add-path::$GITHUB_WORKSPACE/github-actions/bin"
+          echo "$GITHUB_WORKSPACE/github-actions/bin" >> $GITHUB_PATH
       - name: parse deploy command and set vars
         id: vars
         run: actions --log-level debug pcd -f ${GITHUB_EVENT_PATH}
@@ -90,7 +90,7 @@ jobs:
           artifact: ${{ github.event.inputs.repository-name }}
           environment: ${{ github.event.inputs.cluster }}
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: prepare-deploy
     steps:
       - name: check out code
@@ -104,7 +104,7 @@ jobs:
           mkdir -p github-actions/bin
           curl -L -o github-actions/bin/actions https://github.com/dictybase-docker/github-actions/releases/download/v2.1.4/action_2.1.4_Linux_x86_64
           chmod +x github-actions/bin/actions
-          echo "::add-path::$GITHUB_WORKSPACE/github-actions/bin"
+          echo "$GITHUB_WORKSPACE/github-actions/bin" >> $GITHUB_PATH
       - name: extract information from deployment payload
         id: deploy_info
         run: actions --log-level debug sdp -f deployment.json
@@ -136,7 +136,7 @@ jobs:
         if: ${{ failure() }}
         run: actions --log-level debug -t ${{ secrets.REPO_ACCESS_TOKEN }} --owner ${{ github.event.inputs.repository-owner }} -r ${{ github.event.inputs.repository-name }} ds --state error  --deployment_id ${{ steps.deploy_info.outputs.id }} --url ${{ steps.deploy_info.outputs.url }}
   add-reaction:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: deploy
     steps:
       - name: Add reaction
