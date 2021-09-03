@@ -112,9 +112,9 @@ jobs:
         if: ${{ success() }}
         run: actions --log-level debug -t ${{ secrets.REPO_ACCESS_TOKEN }} --owner ${{ github.event.inputs.repository-owner }} -r ${{ github.event.inputs.repository-name }} ds --state in_progress  --deployment_id ${{ steps.deploy_info.outputs.id }} --url ${{ steps.deploy_info.outputs.url }}
       - name: setup google cloud sdk
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@master
         with:
-          version: "313.0.1"
+          version: "354.0.0"
           project_id: ${{ secrets.DEVENV_PROJECT_ID }}
           service_account_key: ${{ secrets.DEVENV_SA_KEY }}
           export_default_credentials: true
