@@ -5,10 +5,10 @@ on:
       - develop
 env:
   CREDENTIAL_CONTENT: ${{ secrets.KOPS_GOOGLE_CREDENTIALS }}
-  GOOGLE_APPLICATION_CREDENTIALS: "${GITHUB_WORKSPACE}/gcp.json"
+  GOOGLE_APPLICATION_CREDENTIALS: "gcp.json"
   KOPS_STATE_STORE: ${{ secrets.KOPS_STATE_STORE }}
   KOPS_CLUSTER_NAME: ${{ vars.KOPS_CLUSTER_NAME }}
-  KUBECONFIG: "${GITHUB_WORKSPACE}/kubeconfig.yaml"
+  KUBECONFIG: "$kubeconfig.yaml"
   KOPS_VERSION: "v1.27.0"
 jobs:
   build:
