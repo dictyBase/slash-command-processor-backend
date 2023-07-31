@@ -1,0 +1,22 @@
+name: Install and Configure Kops
+on:
+  push:
+    branches:
+      - develop
+env:
+  KOPS_GOOGLE_CREDENTIALS: ${{ secrets.KOPS_GOOGLE_CREDENTIALS }}
+  KOPS_STATE_STORE: ${{ secrets.KOPS_STATE_STORE }}
+  KOPS_CLUSTER_NAME: ${{ vars.KOPS_CLUSTER_NAME }}
+  KUBECONFIG: "${GITHUB_WORKSPACE}/kubeconfig.yaml"
+  KOPS_VERSION: "v1.27.0"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install kops
+        run: |
+          curl -Lo github-actions/bin/kops https://github.com/kubernetes/kops/releases/download/${KOPS_VERSION}/kops-linux-amd64
+          chmod +x github-actions/bin/kops
+          echo "$GITHUB_WORKSPACE/github-actions/bin" >> $GITHUB_PATH
+      - name: Export Kubernetes Configuration
+        run: kops export kubeconfig --admin
