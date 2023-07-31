@@ -15,8 +15,11 @@ jobs:
     steps:
       - name: install kops
         run: |
+          mkdir -p github-actions/bin
           curl -Lo github-actions/bin/kops https://github.com/kubernetes/kops/releases/download/${KOPS_VERSION}/kops-linux-amd64
           chmod +x github-actions/bin/kops
           echo "$GITHUB_WORKSPACE/github-actions/bin" >> $GITHUB_PATH
       - name: Export Kubernetes Configuration
         run: kops export kubeconfig --admin
+      - name: print the config
+        run: cat $KUBECONFIG
