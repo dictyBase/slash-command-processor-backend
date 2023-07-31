@@ -26,3 +26,5 @@ jobs:
         run: kops export kubeconfig --admin
       - name: print the config
         run: cat $KUBECONFIG
+      - name: get the kuberentes info
+        run: kubectl cluster-info
