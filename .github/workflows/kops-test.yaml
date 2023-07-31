@@ -23,6 +23,8 @@ jobs:
           chmod +x github-actions/bin/kops
           echo "$GITHUB_WORKSPACE/github-actions/bin" >> $GITHUB_PATH
       - name: Export Kubernetes Configuration
-        run: kops export kubeconfig --admin -v 12
-      - name: print the config
-        run: cat $KUBECONFIG
+        run: kops export kubeconfig --admin
+      - name: get the cluster information
+        run: |
+          kubectl version --short
+          kubectl cluster-info
