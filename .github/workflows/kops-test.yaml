@@ -4,6 +4,7 @@ on:
     branches:
       - develop
 env:
+  CREDENTIAL_CONTENT: ${{ secrets.KOPS_GOOGLE_CREDENTIALS }}
   GOOGLE_APPLICATION_CREDENTIALS: "${GITHUB_WORKSPACE}/gcp.json}"
   KOPS_STATE_STORE: ${{ secrets.KOPS_STATE_STORE }}
   KOPS_CLUSTER_NAME: ${{ vars.KOPS_CLUSTER_NAME }}
@@ -14,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: create credentials file
-        run: echo ${{ secrets.KOPS_GOOGLE_CREDENTIALS }} > ${GOOGLE_APPLICATION_CREDENTIALS} 
+        run: echo ${CREDENTIAL_CONTENT} > ${GOOGLE_APPLICATION_CREDENTIALS} 
       - name: install kops
         run: |
           mkdir -p github-actions/bin
