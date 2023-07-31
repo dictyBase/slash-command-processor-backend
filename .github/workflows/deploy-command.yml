@@ -37,6 +37,27 @@ env:
   KUBECONFIG: "$kubeconfig.yaml"
   KOPS_VERSION: "v1.27.0"
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: create credentials file
+        run: echo ${CREDENTIAL_CONTENT} > ${GOOGLE_APPLICATION_CREDENTIALS} 
+      - name: install kops
+        run: |
+          mkdir -p github-actions/bin
+          curl -Lo github-actions/bin/kops https://github.com/kubernetes/kops/releases/download/${KOPS_VERSION}/kops-linux-amd64
+          chmod +x github-actions/bin/kops
+          echo "$GITHUB_WORKSPACE/github-actions/bin" >> $GITHUB_PATH
+      - name: Export Kubernetes Configuration
+        run: kops export kubeconfig --admin
+      - name: install matching kubectl version
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.24.11
+      - name: get the cluster information
+        run: |
+          kubectl version --short
+          kubectl cluster-info
   prepare-deploy:
     runs-on: ubuntu-20.04
     name: Prepare for deployment
