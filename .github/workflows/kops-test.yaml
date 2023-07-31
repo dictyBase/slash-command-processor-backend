@@ -11,7 +11,7 @@ env:
   KUBECONFIG: "$kubeconfig.yaml"
   KOPS_VERSION: "v1.27.0"
 jobs:
-  build:
+  setup:
     runs-on: ubuntu-latest
     steps:
       - name: create credentials file
@@ -24,6 +24,10 @@ jobs:
           echo "$GITHUB_WORKSPACE/github-actions/bin" >> $GITHUB_PATH
       - name: Export Kubernetes Configuration
         run: kops export kubeconfig --admin
+      - name: install matching kubectl version
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.24.11
       - name: get the cluster information
         run: |
           kubectl version --short
